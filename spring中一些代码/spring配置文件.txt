@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+		<!--这是不使用注解方式的spring配置方式，同时没有使用自动注入方式。-->
+		
+		<!--这里的id所有可以使用任何值，但是应该尽可能的和底层源码保持一致，因为这样的话就可以使用自动注入的方式来简化代码 -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="configLocations">
+			<list>
+				<value>classpath:hibernate.cfg.xml</value>
+				<!-- 在spring中加载hibernate配置文件 -->
+			</list>
+		</property>
+	</bean>
+	<bean id="txManager"
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<!-- 通过这个类进行数据库的连接，调用id为sessionFactory的bean加载数据库配置文件 -->
+		<property name="sessionFactory" ref="sessionFactory"></property>
+		<!-- 关闭数据源检测 防止报Error creating bean with name 'transactionManager' defined 
+			in ServletContext 错 -->
+		<property name="autodetectDataSource" value="false"></property>
+	</bean>
+	<!-- 声明事务连接 将id为txManager的bean交给spring管理 name="*"表明对所有的方法进行事务管理 声明式事务方法中配置内容是具体哪个方法需要进行事务管理 
+		对于此事务中只要对增删改方法进行事务管理即可 ins*，upd*，del* 声明事务是通过通知实现的 所有要配置AOP切面 配置切面就一定要有切点 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="ins*" />
+			<tx:method name="upd*" />
+			<tx:method name="del*" />
+		</tx:attributes>
+	</tx:advice>
+	<!-- 配置AOP切面 pointcut为切点，切点目标为cn.selangshe.service.impl下的所有内容 -->
+	<aop:config>
+		<aop:pointcut expression="execution(* cn.selangshe.service.impl.*.*(..))"
+			id="mypointer" />
+		<!-- 此切点后跟随id为txAdvice的bean事务管理 进行通知实现 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="mypointer" />
+	</aop:config>
+	<!-- 管理所有对象 -->
+	<bean id="userDao" class="cn.selangshe.dao.impl.UserDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="userService" class="cn.selangshe.service.impl.UserServiceImpl">
+	<property name="userDao" ref="userDao"></property>
+	<!-- 必须在 UserServiceImpl中构建userDao类的get set 方法-->
+	</bean>
+	<bean id="userAction" class="cn.selangshe.action.UserAction">
+	<property name="userService" ref="userService"></property>
+	<!-- 必须在userAction中构建userService类的get set 方法 -->
+	</bean>
+</beans>
+        
