@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd"
+	default-autowire="byName">
+    <bean id="mailSender" class="com.xinli001.smallming.commons.util.SpringMailUtil">
+    	<property name="sender" ref="sender"></property>
+    	<property name="freemarker" ref="freemarker"></property>
+    </bean>
+    
+    <bean id="sender" class="org.springframework.mail.javamail.JavaMailSenderImpl" >
+    	<property name="javaMailProperties">
+    		<props>
+    			<!-- 让指定邮箱当作客户端,允许发送邮件 -->
+    			<prop key="mail.smtp.auth">true</prop>
+    		</props>
+    	</property>
+    	<!-- pop3 : 接收邮件的协议
+    	,smtp: 发送邮件协议
+    	,imap:pop3的升级版
+    	 -->
+    	<property name="protocol" value="smtp"></property>
+    	<!-- 不同邮箱主机不同 -->
+    	<property name="host" value="smtp.163.com"></property>
+    	<!-- 邮箱主机端口 -->
+    	<property name="port" value="25"></property>
+    	<!-- 账号 -->
+    	<property name="username" value="jxzyyx2@163.com"></property>
+    	<!-- 邮箱的授权码,当开启邮箱客户端时,就会让设置授权码 -->
+    	<property name="password" value="smallming123"></property>
+    	<!-- 发送邮件的编码 -->
+    	<property name="defaultEncoding" value="utf-8"></property>
+    </bean>
+     <!-- 配置freemarker相关 -->
+    <bean id="freemarker" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+    	<!-- 路径 -->
+		<property name="templateLoaderPath" value="classpath:com/xinli001/smallming/commons/util/"></property>
+    	<property name="freemarkerSettings">
+    		<props>
+    			<prop key="default_encoding">utf-8</prop>
+    		</props>
+    	</property>
+    </bean>
+</beans>
